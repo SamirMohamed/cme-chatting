@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile_dev
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 9000:9000
+    volumes:
+      - ./:/app

@@ -6,7 +6,20 @@ services:
     restart: always
     env_file:
       - .env
+    depends_on:
+      - cassandra
     ports:
       - 9000:9000
     volumes:
       - ./:/app
+
+  cassandra:
+    image: cassandra:5.0
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+
+volumes:
+  cassandra-data:

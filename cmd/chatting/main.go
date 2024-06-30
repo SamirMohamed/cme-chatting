@@ -42,13 +42,12 @@ func main() {
 
 	// Handle Routes
 	authHandler := authentication.NewAuthenticationHandler(db)
-
-	// Init server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
 	mux.HandleFunc("/login", authHandler.Login)
 
+	// Init server
 	log.Println("Server started on :8080")
 	if err := http.ListenAndServe(":8080", recoverMiddleware(mux)); err != nil {
 		log.Fatalf("Server failed: %v", err)

@@ -2,11 +2,25 @@ package main
 
 import (
 	"fmt"
+	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+	// Init Cassandra
+	cAddresses := []string{os.Getenv("CASSANDRA_HOST")}
+	cKeyspace := os.Getenv("CASSANDRA_KEYSPACE")
+	cUsername := os.Getenv("CASSANDRA_USERNAME")
+	cPassword := os.Getenv("CASSANDRA_PASSWORD")
+	db, err := datastore.NewCassandra(cAddresses, cKeyspace, cUsername, cPassword)
+	if err != nil {
+		log.Fatalf("Error connecting to Cassandra: %v", err)
+	}
+	defer db.Close()
+
+	// Init server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/SamirMohamed/cme-chatting/cmd/authentication"
 	"github.com/SamirMohamed/cme-chatting/pkg/cache"
 	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
 	"log"
@@ -39,9 +40,13 @@ func main() {
 		}
 	}(c)
 
+	// Handle Routes
+	authHandler := authentication.NewAuthenticationHandler(db)
+
 	// Init server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
+	mux.HandleFunc("/register", authHandler.RegisterHandler)
 
 	log.Println("Server started on :8080")
 	if err := http.ListenAndServe(":8080", recoverMiddleware(mux)); err != nil {

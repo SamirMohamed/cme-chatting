@@ -6,7 +6,7 @@ import (
 )
 
 type Cassandra struct {
-	session *gocql.Session
+	Session *gocql.Session
 }
 
 func NewCassandra(addresses []string, keyspace, username, password string) (*Cassandra, error) {
@@ -22,11 +22,11 @@ func NewCassandra(addresses []string, keyspace, username, password string) (*Cas
 		return nil, fmt.Errorf("failed to create Cassandra session: %v", err)
 	}
 
-	return &Cassandra{session: session}, nil
+	return &Cassandra{Session: session}, nil
 }
 
 func (c *Cassandra) Close() {
-	if c.session != nil {
-		c.session.Close()
+	if c.Session != nil {
+		c.Session.Close()
 	}
 }

@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/gocql/gocql v1.6.0
 	github.com/redis/go-redis/v9 v9.5.3
+	golang.org/x/crypto v0.24.0
 )
 
 require (

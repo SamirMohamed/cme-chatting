@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/SamirMohamed/cme-chatting/pkg/cache"
 	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -19,6 +21,23 @@ func main() {
 		log.Fatalf("Error connecting to Cassandra: %v", err)
 	}
 	defer db.Close()
+
+	// Init Redis
+	rAddress := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	rDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	if err != nil {
+		log.Fatalf("Error casting Redis post to integer: %v", err)
+	}
+	c, err := cache.NewRedis(rAddress, rDB)
+	if err != nil {
+		log.Fatalf("Error connecting to Redis: %v", err)
+	}
+	defer func(c *cache.Redis) {
+		err := c.Close()
+		if err != nil {
+			log.Fatalf("Error closing Redis connectino: %v", err)
+		}
+	}(c)
 
 	// Init server
 	mux := http.NewServeMux()

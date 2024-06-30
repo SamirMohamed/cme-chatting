@@ -47,6 +47,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
+	mux.HandleFunc("/login", authHandler.Login)
 
 	log.Println("Server started on :8080")
 	if err := http.ListenAndServe(":8080", recoverMiddleware(mux)); err != nil {

@@ -19,12 +19,11 @@ services:
     restart: always
     env_file:
       - .env
+    entrypoint: ["/init.sh"]
     volumes:
-      - cassandra-data:/var/lib/cassandra
+      - ./db/schema.cql:/schema.cql
+      - ./db/init.sh:/init.sh
 
   redis:
     image: redis:7.2-alpine3.20
     restart: always
-
-volumes:
-  cassandra-data:

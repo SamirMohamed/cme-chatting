@@ -22,7 +22,7 @@ func NewAuthenticationHandler(db *datastore.Cassandra) Handler {
 	}
 }
 
-func (auth Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (auth Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var u user
 	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {

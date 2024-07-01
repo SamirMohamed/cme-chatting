@@ -27,3 +27,11 @@ services:
   redis:
     image: redis:7.2-alpine3.20
     restart: always
+
+  nginx:
+    image: nginx:alpine3.19
+    restart: always
+    volumes:
+      - ./nginx/config.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app

@@ -1,7 +1,6 @@
 package chatting
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/SamirMohamed/cme-chatting/pkg/cache"
@@ -14,7 +13,7 @@ import (
 
 type Handler struct {
 	db    *datastore.Cassandra
-	cache *cache.Redis
+	cache cache.Cache
 }
 
 type message struct {
@@ -25,7 +24,7 @@ type message struct {
 	Timestamp time.Time `json:"timestamp,omitempty"`
 }
 
-func NewChattingHandler(db *datastore.Cassandra, cache *cache.Redis) *Handler {
+func NewChattingHandler(db *datastore.Cassandra, cache cache.Cache) *Handler {
 	return &Handler{
 		db:    db,
 		cache: cache,
@@ -49,22 +48,8 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var keys []string
 	cacheKey := fmt.Sprintf("%s:%s:*", msg.Sender, msg.Recipient)
-	var cursor uint64
-	for {
-		result, nextCursor, err := h.cache.Client.Scan(context.Background(), cursor, cacheKey, 1000).Result()
-		if err != nil {
-			log.Printf("Error scanning cached messages: %v\n", err)
-			break
-		}
-		keys = append(keys, result...)
-		if nextCursor == 0 {
-			break
-		}
-		cursor = nextCursor
-	}
-	err = h.cache.Client.Del(context.Background(), keys...).Err()
+	err = h.cache.Del(cacheKey)
 	if err != nil {
 		log.Printf("Error deleting cached messages: %v\n", err)
 	}
@@ -79,7 +64,7 @@ func (h *Handler) GetMessages(w http.ResponseWriter, r *http.Request) {
 	messages := []message{}
 
 	cacheKey := fmt.Sprintf("%s:%s:%s", sender, recipient, lastMessageId)
-	cachedMessages, err := h.cache.Client.LRange(context.Background(), cacheKey, 0, -1).Result()
+	cachedMessages, err := h.cache.LRange(cacheKey)
 	if err == nil && len(cachedMessages) > 0 {
 		for _, cachedMsg := range cachedMessages {
 			var msg message
@@ -122,14 +107,9 @@ func (h *Handler) GetMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(cacheMessages) > 0 {
-		err = h.cache.Client.RPush(context.Background(), cacheKey, cacheMessages...).Err()
+		err = h.cache.RPush(cacheKey, cacheMessages...)
 		if err != nil {
 			log.Printf("Error caching messages: %v\n", err)
-		}
-
-		err = h.cache.Client.ExpireNX(context.Background(), cacheKey, time.Hour*1).Err()
-		if err != nil {
-			log.Printf("Error setting caching expire: %v\n", err)
 		}
 	}
 

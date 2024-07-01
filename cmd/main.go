@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/SamirMohamed/cme-chatting/cmd/authentication"
+	"github.com/SamirMohamed/cme-chatting/cmd/chatting"
 	jwtAuth "github.com/SamirMohamed/cme-chatting/pkg/authentication"
 	"github.com/SamirMohamed/cme-chatting/pkg/cache"
 	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
@@ -43,10 +44,12 @@ func main() {
 
 	// Handle Routes
 	authHandler := authentication.NewAuthenticationHandler(db)
+	chattingHandler := chatting.NewChattingHandler(db)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
 	mux.HandleFunc("/login", authMiddleware(authHandler.Login))
+	mux.HandleFunc("/send", authMiddleware(chattingHandler.Send))
 
 	// Init server
 	log.Println("Server started on :8080")

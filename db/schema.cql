@@ -6,3 +6,12 @@ CREATE TABLE IF NOT EXISTS users (
    username TEXT PRIMARY KEY,
    password TEXT
 );
+
+CREATE TABLE IF NOT EXISTS messages (
+  id TIMEUUID,
+  sender TEXT,
+  recipient TEXT,
+  content TEXT,
+  timestamp TIMESTAMP,
+  PRIMARY KEY ((sender, recipient), id)
+) WITH CLUSTERING ORDER BY (id DESC);

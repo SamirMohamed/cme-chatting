@@ -29,7 +29,7 @@ func main() {
 	rAddress := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	rDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
 	if err != nil {
-		log.Fatalf("Error casting Redis post to integer: %v", err)
+		log.Fatalf("Error casting Redis db to integer: %v", err)
 	}
 	c, err := cache.NewRedis(rAddress, rDB)
 	if err != nil {

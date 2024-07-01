@@ -49,13 +49,25 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var keys []string
 	cacheKey := fmt.Sprintf("%s:%s:*", msg.Sender, msg.Recipient)
-	err = h.cache.Client.Del(context.Background(), cacheKey).Err()
+	var cursor uint64
+	for {
+		result, nextCursor, err := h.cache.Client.Scan(context.Background(), cursor, cacheKey, 1000).Result()
+		if err != nil {
+			log.Printf("Error scanning cached messages: %v\n", err)
+			break
+		}
+		keys = append(keys, result...)
+		if nextCursor == 0 {
+			break
+		}
+		cursor = nextCursor
+	}
+	err = h.cache.Client.Del(context.Background(), keys...).Err()
 	if err != nil {
 		log.Printf("Error deleting cached messages: %v\n", err)
-		return
 	}
-
 	w.WriteHeader(http.StatusCreated)
 }
 

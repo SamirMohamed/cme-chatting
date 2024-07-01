@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/SamirMohamed/cme-chatting/cmd/authentication"
 	"github.com/SamirMohamed/cme-chatting/cmd/chatting"
-	jwtAuth "github.com/SamirMohamed/cme-chatting/pkg/authentication"
+	authenticator "github.com/SamirMohamed/cme-chatting/pkg/authentication"
 	"github.com/SamirMohamed/cme-chatting/pkg/cache"
 	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
 	"log"
@@ -43,15 +43,18 @@ func main() {
 		}
 	}(c)
 
+	// Init authenticator
+	auth := authenticator.NewJwtAuthenticator()
+
 	// Handle Routes
-	authHandler := authentication.NewAuthenticationHandler(db)
+	authHandler := authentication.NewAuthenticationHandler(db, auth)
 	chattingHandler := chatting.NewChattingHandler(db, c)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
 	mux.HandleFunc("/login", authHandler.Login)
-	mux.HandleFunc("/send", authMiddleware(chattingHandler.Send))
-	mux.HandleFunc("/messages", authMiddleware(chattingHandler.GetMessages))
+	mux.HandleFunc("/send", authMiddleware(chattingHandler.Send, auth))
+	mux.HandleFunc("/messages", authMiddleware(chattingHandler.GetMessages, auth))
 
 	// Init server
 	log.Println("Server started on :8080")
@@ -76,7 +79,7 @@ func recoverMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func authMiddleware(next http.HandlerFunc, auth authenticator.Authenticator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqToken := r.Header.Get("Authorization")
 		splitToken := strings.Split(reqToken, "Bearer")
@@ -88,7 +91,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		tokenString := strings.TrimSpace(splitToken[1])
 
-		_, err := jwtAuth.NewJwtAuthenticator().VerifyJWT(tokenString)
+		err := auth.Verify(tokenString)
 		if err != nil {
 			log.Printf("Error verifying jwt token: %v", err)
 			http.Error(w, "Forbidden", http.StatusForbidden)

@@ -23,7 +23,7 @@ func NewJwtAuthenticator() *Jwt {
 	}
 }
 
-func (j *Jwt) GenerateJWT(username string) (string, error) {
+func (j *Jwt) Generate(username string) (string, error) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &LoginClaims{
 		Username: username,
@@ -40,7 +40,7 @@ func (j *Jwt) GenerateJWT(username string) (string, error) {
 	return tokenString, nil
 }
 
-func (j *Jwt) VerifyJWT(tokenString string) (*LoginClaims, error) {
+func (j *Jwt) Verify(tokenString string) error {
 	claims := &LoginClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return j.jwtSigningKey, nil
@@ -48,14 +48,14 @@ func (j *Jwt) VerifyJWT(tokenString string) (*LoginClaims, error) {
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrSignatureInvalid) {
-			return nil, fmt.Errorf("invalid signature")
+			return fmt.Errorf("invalid signature")
 		}
-		return nil, fmt.Errorf("invalid token")
+		return fmt.Errorf("invalid token")
 	}
 
 	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return fmt.Errorf("invalid token")
 	}
 
-	return claims, nil
+	return nil
 }

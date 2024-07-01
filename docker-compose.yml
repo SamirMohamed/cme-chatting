@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile_dev
+      dockerfile: Dockerfile
     restart: always
     env_file:
       - .env

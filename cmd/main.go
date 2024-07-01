@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -48,7 +49,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
-	mux.HandleFunc("/login", authMiddleware(authHandler.Login))
+	mux.HandleFunc("/login", authHandler.Login)
 	mux.HandleFunc("/send", authMiddleware(chattingHandler.Send))
 	mux.HandleFunc("/messages", authMiddleware(chattingHandler.GetMessages))
 
@@ -77,7 +78,15 @@ func recoverMiddleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
+		reqToken := r.Header.Get("Authorization")
+		splitToken := strings.Split(reqToken, "Bearer")
+		if len(splitToken) != 2 {
+			log.Printf("Error verifying jwt token: %v", fmt.Errorf("missing jwt token"))
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		tokenString := strings.TrimSpace(splitToken[1])
 
 		_, err := jwtAuth.NewJwtAuthenticator().VerifyJWT(tokenString)
 		if err != nil {

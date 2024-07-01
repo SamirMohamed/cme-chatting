@@ -12,6 +12,7 @@ type Cassandra struct {
 func NewCassandra(addresses []string, keyspace, username, password string) (*Cassandra, error) {
 	cluster := gocql.NewCluster(addresses...)
 	cluster.Keyspace = keyspace
+	cluster.Consistency = gocql.One
 	cluster.Authenticator = gocql.PasswordAuthenticator{
 		Username: username,
 		Password: password,

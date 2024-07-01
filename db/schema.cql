@@ -1,4 +1,4 @@
-CREATE KEYSPACE IF NOT EXISTS cme_chatting WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': 3 };
+CREATE KEYSPACE IF NOT EXISTS cme_chatting WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': 1 };
 
 USE cme_chatting;
 

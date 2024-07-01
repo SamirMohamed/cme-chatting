@@ -17,6 +17,10 @@ services:
     restart: always
     env_file:
       - .env
+    volumes:
+      - ./db/schema.cql:/schema.cql
+      - ./db/init-schema.sh:/init-schema.sh
+    entrypoint: [ "/init-schema.sh" ]
 
   redis:
     image: redis:7.2-alpine3.20

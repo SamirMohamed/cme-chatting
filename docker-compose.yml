@@ -9,8 +9,6 @@ services:
     depends_on:
       - cassandra
       - redis
-    ports:
-      - 9000:9000
     volumes:
       - ./:/app
 
@@ -19,10 +17,6 @@ services:
     restart: always
     env_file:
       - .env
-    entrypoint: ["/init.sh"]
-    volumes:
-      - ./db/schema.cql:/schema.cql
-      - ./db/init.sh:/init.sh
 
   redis:
     image: redis:7.2-alpine3.20
@@ -31,6 +25,8 @@ services:
   nginx:
     image: nginx:alpine3.19
     restart: always
+    ports:
+      - 8080:8080
     volumes:
       - ./nginx/config.conf:/etc/nginx/nginx.conf:ro
     depends_on:

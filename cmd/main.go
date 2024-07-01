@@ -44,7 +44,7 @@ func main() {
 
 	// Handle Routes
 	authHandler := authentication.NewAuthenticationHandler(db)
-	chattingHandler := chatting.NewChattingHandler(db)
+	chattingHandler := chatting.NewChattingHandler(db, c)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)

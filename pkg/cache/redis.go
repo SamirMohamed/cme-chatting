@@ -6,7 +6,7 @@ import (
 )
 
 type Redis struct {
-	client *redis.Client
+	Client *redis.Client
 }
 
 func NewRedis(address string, db int) (*Redis, error) {
@@ -20,12 +20,12 @@ func NewRedis(address string, db int) (*Redis, error) {
 		return nil, err
 	}
 
-	return &Redis{client: client}, nil
+	return &Redis{Client: client}, nil
 }
 
 func (c *Redis) Close() error {
-	if c.client != nil {
-		err := c.client.Close()
+	if c.Client != nil {
+		err := c.Client.Close()
 		if err != nil {
 			return err
 		}

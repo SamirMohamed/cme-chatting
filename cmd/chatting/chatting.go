@@ -14,6 +14,7 @@ type Handler struct {
 }
 
 type message struct {
+	Id        string `json:"id,omitempty"`
 	Sender    string `json:"sender"`
 	Recipient string `json:"recipient"`
 	Content   string `json:"content"`
@@ -42,4 +43,38 @@ func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *Handler) GetMessages(w http.ResponseWriter, r *http.Request) {
+	sender := r.URL.Query().Get("sender")
+	recipient := r.URL.Query().Get("recipient")
+	lastMessageId := r.URL.Query().Get("prev_page")
+
+	var messages []message
+	query := h.db.Session.Query(`SELECT * FROM messages WHERE sender = ? AND recipient = ? ORDER BY id DESC LIMIT 50`, sender, recipient)
+	if len(lastMessageId) > 0 {
+		query = h.db.Session.Query(`SELECT * FROM messages WHERE sender = ? AND recipient = ? AND id > ? ORDER BY id DESC LIMIT 50`, sender, recipient, lastMessageId)
+	}
+	iter := query.Iter()
+	for {
+		var msg message
+		if !iter.Scan(&msg.Id, &msg.Sender, &msg.Recipient, &msg.Content, &msg.Timestamp) {
+			break
+		}
+		messages = append(messages, msg)
+	}
+	if err := iter.Close(); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(map[string][]message{
+		"messages": messages,
+	})
+	if err != nil {
+		log.Printf("Error encoding messages: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }

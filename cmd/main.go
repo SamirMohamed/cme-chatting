@@ -50,6 +50,7 @@ func main() {
 	mux.HandleFunc("/register", authHandler.Register)
 	mux.HandleFunc("/login", authMiddleware(authHandler.Login))
 	mux.HandleFunc("/send", authMiddleware(chattingHandler.Send))
+	mux.HandleFunc("/messages", authMiddleware(chattingHandler.GetMessages))
 
 	// Init server
 	log.Println("Server started on :8080")

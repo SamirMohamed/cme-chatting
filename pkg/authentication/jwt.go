@@ -1,12 +1,14 @@
 package authentication
 
 import (
+	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
 )
 
-type loginClaims struct {
+type LoginClaims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
@@ -23,7 +25,7 @@ func NewJwtAuthenticator() *Jwt {
 
 func (j *Jwt) GenerateJWT(username string) (string, error) {
 	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &loginClaims{
+	claims := &LoginClaims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -36,4 +38,24 @@ func (j *Jwt) GenerateJWT(username string) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func (j *Jwt) VerifyJWT(tokenString string) (*LoginClaims, error) {
+	claims := &LoginClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return j.jwtSigningKey, nil
+	})
+
+	if err != nil {
+		if errors.Is(err, jwt.ErrSignatureInvalid) {
+			return nil, fmt.Errorf("invalid signature")
+		}
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return claims, nil
 }

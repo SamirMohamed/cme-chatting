@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/SamirMohamed/cme-chatting/cmd/authentication"
+	jwtAuth "github.com/SamirMohamed/cme-chatting/pkg/authentication"
 	"github.com/SamirMohamed/cme-chatting/pkg/cache"
 	"github.com/SamirMohamed/cme-chatting/pkg/datastore"
 	"log"
@@ -45,7 +46,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", healthCheckHandler)
 	mux.HandleFunc("/register", authHandler.Register)
-	mux.HandleFunc("/login", authHandler.Login)
+	mux.HandleFunc("/login", authMiddleware(authHandler.Login))
 
 	// Init server
 	log.Println("Server started on :8080")
@@ -68,4 +69,19 @@ func recoverMiddleware(next http.Handler) http.Handler {
 		}()
 		next.ServeHTTP(w, r)
 	})
+}
+
+func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+
+		_, err := jwtAuth.NewJwtAuthenticator().VerifyJWT(tokenString)
+		if err != nil {
+			log.Printf("Error verifying jwt token: %v", err)
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
 }
